@@ -21,15 +21,19 @@ def load_user(userid):
     return models.User.query.get(int(userid))
 
 
+
 class Query(ObjectType):
-    hello = String(name=String(default_value="stranger"))
+    vote = String(user_id=String(), section_id=String())
     goodbye = String()
 
-    def resolve_vote(root, info, name, num_of_vote):
-        return
+    def resolve_vote(root, info, user_id, section_id):
+        new_vote = models.Vote(user_id=user_id, section_id=section_id)
+        db.session.add(new_vote)
+        db.session.commit()
+        return True
 
 
-schema = Schema(query=Query)
+schema = Schema(query=Query, auto_camelcase=False)
 
 view_func = GraphQLView.as_view("graphql", schema=schema)
 
