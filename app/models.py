@@ -48,12 +48,14 @@ class Discussion(db.Model):
     description = db.Column(db.Text, nullable=False)
     deadline =    db.Column(db.DateTime)
 
-    members = db.relationship('User', backref='discussions', secondary=discussion_members)
+    sections = db.relationship('Section', backref='discussion', lazy='dynamic')
+    members =  db.relationship('User', backref='discussions', secondary=discussion_members)
 
 
 class Section(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
+    discussion_id = db.Column(db.Integer, db.ForeignKey('discussion.id'))
     description = db.Column(db.Text)
 
     votes =    db.relationship('Vote', backref='section', lazy='dynamic')
