@@ -20,7 +20,8 @@ class User(db.Model):
 
     vote_weight = db.Column(db.SmallInteger, default=1)
 
-    votes = db.relationship('Vote', backref='section', lazy='dynamic')
+    votes =    db.relationship('Vote', backref='section', lazy='dynamic')
+    messages = db.relationship('Message', backref='user', lazy='dynamic')
 
     @property
     def is_authenticated(self):
@@ -55,11 +56,22 @@ class Section(db.Model):
 
     description = db.Column(db.Text)
 
-    votes = db.relationship('Vote', backref='section', lazy='dynamic')
+    votes =    db.relationship('Vote', backref='section', lazy='dynamic')
+    messages = db.relationship('Message', backref='section', lazy='dynamic')
 
 
 class Vote(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+
+    user_id =    db.Column(db.Integer, db.ForeignKey('user.id'))
+    section_id = db.Column(db.Integer, db.ForeignKey('section.id'))
+
+
+class Message(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    content =  db.Column(db.Text, nullable=False)
+    datetime = db.Column(db.DateTime, nullable=False)
 
     user_id =    db.Column(db.Integer, db.ForeignKey('user.id'))
     section_id = db.Column(db.Integer, db.ForeignKey('section.id'))
