@@ -20,7 +20,7 @@ class User(db.Model):
 
     vote_weight = db.Column(db.SmallInteger, default=1)
 
-    votes =    db.relationship('Vote', backref='section', lazy='dynamic')
+    votes =    db.relationship('Vote', backref='user', lazy='dynamic')
     messages = db.relationship('Message', backref='user', lazy='dynamic')
 
     @property
