@@ -62,11 +62,20 @@ class Section(db.Model):
     messages = db.relationship('Message', backref='section', lazy='dynamic')
 
 
+class Option(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    section_id = db.Column(db.Integer, db.ForeignKey('section.id'))
+
+    votes = db.relationship('Vote', backref='option', lazy='dynamic')
+
+
 class Vote(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
     user_id =    db.Column(db.Integer, db.ForeignKey('user.id'))
     section_id = db.Column(db.Integer, db.ForeignKey('section.id'))
+    option_id =  db.Column(db.Integer, db.ForeignKey('option.id'))
 
 
 class Message(db.Model):
