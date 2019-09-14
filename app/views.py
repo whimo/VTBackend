@@ -1,9 +1,19 @@
 from app import app, models, db, bcrypt
-from flask import Blueprint
 
-api = Blueprint('api', __name__, template_folder='templates')
+from flask import Flask
+from graphene import ObjectType, String, Schema
+from flask_graphql import GraphQLView
 
+class Query(ObjectType):
+    hello = String(name=String(default_value="stranger"))
+    goodbye = String()
 
-@api.route('/')
-def index():
-    return '<h1>hello fuckers</h1>'
+    def resolve_vote(root, info, name, num_of_vote):
+        return
+    
+
+schema = Schema(query=Query)
+
+view_func = GraphQLView.as_view("graphql", schema=schema)
+
+app.add_url_rule("/api", view_func=view_func)

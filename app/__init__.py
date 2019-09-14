@@ -13,7 +13,4 @@ migrate = Migrate(app, db)
 lm = LoginManager(app)
 bcrypt = Bcrypt(app)
 
-from app import models
-from app.views import api
-
-app.register_blueprint(api, url_prefix=app.config['APPLICATION_MOUNT'])
+from app import views, models
