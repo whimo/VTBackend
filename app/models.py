@@ -20,6 +20,8 @@ class User(db.Model):
 
     vote_weight = db.Column(db.SmallInteger, default=1)
 
+    votes = db.relationship('Vote', backref='section', lazy='dynamic')
+
     @property
     def is_authenticated(self):
         return True
@@ -46,3 +48,18 @@ class Discussion(db.Model):
     deadline =    db.Column(db.DateTime)
 
     members = db.relationship('User', backref='discussions', secondary=discussion_members)
+
+
+class Section(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    description = db.Column(db.Text)
+
+    votes = db.relationship('Vote', backref='section', lazy='dynamic')
+
+
+class Vote(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    user_id =    db.Column(db.Integer, db.ForeignKey('user.id'))
+    section_id = db.Column(db.Integer, db.ForeignKey('section.id'))
