@@ -8,7 +8,7 @@ app = Flask(__name__)
 app.config.from_object('config')
 
 db = SQLAlchemy(app)
-migrate = Migrate(app)
+migrate = Migrate(app, db)
 
 lm = LoginManager(app)
 bcrypt = Bcrypt(app)
