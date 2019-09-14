@@ -49,6 +49,9 @@ class Discussion(db.Model):
     description = db.Column(db.Text)
     deadline =    db.Column(db.DateTime)
 
+    creator =       db.Column(db.Integer, db.ForeignKey('user.id'))
+    creation_date = db.Column(db.DateTime)
+
     sections = db.relationship('Section', backref='discussion', lazy='dynamic')
     members =  db.relationship('User', backref='discussions', secondary=discussion_members)
 
