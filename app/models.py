@@ -45,7 +45,8 @@ class User(db.Model):
 class Discussion(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
-    description = db.Column(db.Text, nullable=False)
+    name =        db.Column(db.Text, nullable=False)
+    description = db.Column(db.Text)
     deadline =    db.Column(db.DateTime)
 
     sections = db.relationship('Section', backref='discussion', lazy='dynamic')
@@ -58,6 +59,7 @@ class Section(db.Model):
     discussion_id = db.Column(db.Integer, db.ForeignKey('discussion.id'))
     description = db.Column(db.Text)
 
+    options =  db.relationship('Option', backref='section', lazy='joined')
     votes =    db.relationship('Vote', backref='section', lazy='dynamic')
     messages = db.relationship('Message', backref='section', lazy='dynamic')
 
@@ -65,9 +67,10 @@ class Section(db.Model):
 class Option(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
+    text =       db.Column(db.Text)
     section_id = db.Column(db.Integer, db.ForeignKey('section.id'))
 
-    votes = db.relationship('Vote', backref='option', lazy='dynamic')
+    votes = db.relationship('Vote', backref='option', lazy='joined')
 
 
 class Vote(db.Model):
