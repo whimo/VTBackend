@@ -68,6 +68,13 @@ class Section(db.Model):
     votes =    db.relationship('Vote', backref='section', lazy='dynamic')
     messages = db.relationship('Message', backref='section', lazy='dynamic')
 
+    voted_for_percentage = db.Column(db.Integer)
+
+    def get_voted_for_percentage(self):
+        votes_for = self.votes.filter_by(voted_for=True).count()
+        votes_against = self.votes.filter_by(voted_for=False).count()
+        return round(votes_for * 100 / float(votes_for + votes_against))
+
 
 class Vote(db.Model):
     id = db.Column(db.Integer, primary_key=True)
