@@ -152,7 +152,7 @@ class Mutations(ObjectType):
     register = NewUserMutation.Field()
 
 
-schema = Schema(query=Query, mutation=Mutation, auto_camelcase=False)
+schema = Schema(query=Query, mutation=Mutations, auto_camelcase=False)
 
 view_func = GraphQLView.as_view("graphql", schema=schema, graphiql=True)
 
