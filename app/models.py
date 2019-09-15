@@ -1,4 +1,5 @@
 from app import db
+from datetime import datetime
 
 
 discussion_members = db.Table('discussion_members',
@@ -50,7 +51,7 @@ class Discussion(db.Model):
     deadline =    db.Column(db.DateTime)
 
     creator =       db.Column(db.Integer, db.ForeignKey('user.id'))
-    creation_date = db.Column(db.DateTime)
+    creation_date = db.Column(db.DateTime, default=datetime.utcnow())
 
     sections = db.relationship('Section', backref='discussion', lazy='dynamic')
     members =  db.relationship('User', backref='discussions', secondary=discussion_members)

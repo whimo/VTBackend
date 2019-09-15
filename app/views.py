@@ -1,5 +1,6 @@
 from app import app, models, db, lm, bcrypt
 from flask import g
+from datetime import datetime
 from flask_login import current_user
 from graphene import ObjectType, String, Schema, DateTime
 import graphene
@@ -108,7 +109,7 @@ class Query(ObjectType):
             return '{"status":"wrong"}'
 
     def resolve_discussion(root, info, d_name, d_description, d_deadline):
-        new_discussion = models.Discussion(name=d_name, description=d_description, deadline = d_deadline)
+        new_discussion = models.Discussion(name=d_name, description=d_description, deadline = d_deadline, creation_date=datetime.utcnow())
         db.session.add(new_discussion)
         db.session.commit()
         return '{"status": "ok"}'
