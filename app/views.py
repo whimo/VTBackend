@@ -60,6 +60,7 @@ class Query(ObjectType):
     sections =    graphene.List(Section, id=graphene.Argument(type=graphene.Int, required=False))
     votes =       graphene.List(Vote)
     messages =    graphene.List(Message)
+    discussion = String(d_name = String(), d_description = String(), d_deadline = DateTime())
 
     def resolve_users(self, info):
         query = User.get_query(info)
@@ -84,6 +85,12 @@ class Query(ObjectType):
     def resolve_messages(self, info):
         query = Message.get_query(info)
         return query.all()
+
+    def resolve_discussion(root, info, d_name, d_description, d_deadline):
+        new_discussion = models.Discussion(name=d_name, description=d_description, deadline = d_deadline, creation_date=datetime.utcnow())
+        db.session.add(new_discussion)
+        db.session.commit()
+        return '{"status": "ok"}'
 
 
 class NewUserMutation(Mutation):
