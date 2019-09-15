@@ -124,14 +124,19 @@ class NewVoteMutation(Mutation):
     class Arguments:
         user_id =     graphene.String(required=True)
         section_id =  graphene.String(required=True)
+        voted_for =   graphene.Boolean(required=False)
 
     vote = graphene.Field(Vote)
 
-    def mutate(root, info, user_id, section_id):
-        print(g.user.id)
-        new_vote = models.Vote(user_id=user_id, section_id=section_id)
-        db.session.add(new_vote)
-        db.session.commit()
+    def mutate(root, info, user_id, section_id, voted_for=None):
+        section = models.Section.query.get(section_id)
+        if section and not section.discussion.closed:
+            new_vote = models.Vote(user_id=user_id, section_id=section_id, voted_for=voted_for)
+            db.session.add(new_vote)
+            db.session.commit()
+        else:
+            new_vote = None
+
         return NewVoteMutation(vote=new_vote)
 
 
@@ -143,9 +148,14 @@ class NewSectionMutation(Mutation):
     section = graphene.Field(Section)
 
     def mutate(root, info, discussion_id, description):
-        new_section = models.Section(discussion_id=discussion_id, description=description)
-        db.session.add(new_section)
-        db.session.commit()
+        discussion = models.Discussion.query.get(discussion_id)
+        if discussion and not discussion.closed:
+            new_section = models.Section(discussion_id=discussion_id, description=description)
+            db.session.add(new_section)
+            db.session.commit()
+        else:
+            new_section = None
+
         return NewSectionMutation(section=new_section)
 
 
