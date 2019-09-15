@@ -16,12 +16,17 @@ def before_request():
     g.user = current_user
 
 
-@lm.user_loader
-def load_user(userid):
-    '''
-    Flask-Login user loader
-    '''
-    return models.User.query.get(int(userid))
+@lm.request_loader
+def load_user_from_request(request):
+    print('hey')
+    uid = request.headers.get('Authorization')
+    if uid:
+        user = models.User.query.filter_by(id=uid).first()
+        if user:
+            return user
+
+    # finally, return None if both methods did not login the user
+    return None
 
 
 class User(SQLAlchemyObjectType):
@@ -156,6 +161,8 @@ class NewLoginMutation(Mutation):
 
         if user_ and bcrypt.check_password_hash(user_.password, password):
             login_user(user_)
+        else:
+            user_ = None
 
         return NewLoginMutation(user=user_)
 
