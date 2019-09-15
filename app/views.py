@@ -76,6 +76,7 @@ class Query(ObjectType):
         query = Section.get_query(info)
         if id:
             query = query.filter(models.Section.id == id)
+
         return query.all()
 
     def resolve_votes(self, info):
@@ -131,14 +132,20 @@ class NewVoteMutation(Mutation):
     class Arguments:
         user_id =     graphene.String(required=True)
         section_id =  graphene.String(required=True)
+        voted_for =   graphene.Boolean(required=False)
 
     vote = graphene.Field(Vote)
 
-    def mutate(root, info, user_id, section_id):
-        print(g.user.id)
-        new_vote = models.Vote(user_id=user_id, section_id=section_id)
-        db.session.add(new_vote)
-        db.session.commit()
+    def mutate(root, info, user_id, section_id, voted_for=None):
+        section = models.Section.query.get(section_id)
+        if section and not section.discussion.closed:
+            new_vote = models.Vote(user_id=user_id, section_id=section_id, voted_for=voted_for)
+            db.session.add(new_vote)
+            db.session.commit()
+            section.get_voted_for_percentage()
+        else:
+            new_vote = None
+
         return NewVoteMutation(vote=new_vote)
 
 
@@ -150,9 +157,14 @@ class NewSectionMutation(Mutation):
     section = graphene.Field(Section)
 
     def mutate(root, info, discussion_id, description):
-        new_section = models.Section(discussion_id=discussion_id, description=description)
-        db.session.add(new_section)
-        db.session.commit()
+        discussion = models.Discussion.query.get(discussion_id)
+        if discussion and not discussion.closed:
+            new_section = models.Section(discussion_id=discussion_id, description=description)
+            db.session.add(new_section)
+            db.session.commit()
+        else:
+            new_section = None
+
         return NewSectionMutation(section=new_section)
 
 
@@ -190,6 +202,37 @@ class NewMessageMutation(Mutation):
         return NewMessageMutation(message=new_message)
 
 
+class EditSectionMutation(Mutation):
+    class Arguments:
+        section_id =    graphene.String(required=True)
+        description =   graphene.String(required=False)
+
+    section = graphene.Field(Section)
+
+    def mutate(root, info, section_id, description=None):
+        section_ = models.Section.query.get(section_id)
+        if section_:
+            section_.description = description or section_.description
+            db.session.commit()
+
+        return EditSectionMutation(section=section_)
+
+
+class CloseDiscussionMutation(Mutation):
+    class Arguments:
+        discussion_id = graphene.String(required=True)
+
+    discussion = graphene.Field(Discussion)
+
+    def mutate(root, info, discussion_id):
+        discussion_ = models.Discussion.query.get(discussion_id)
+        if discussion_:
+            discussion_.closed = True
+            db.session.commit()
+
+        return CloseDiscussionMutation(discussion=discussion_)
+
+
 class Mutations(ObjectType):
     register = NewUserMutation.Field()
     discussion = NewDiscussionMutation.Field()
@@ -197,6 +240,8 @@ class Mutations(ObjectType):
     vote = NewVoteMutation.Field()
     login = NewLoginMutation.Field()
     message = NewMessageMutation.Field()
+    section_edit = EditSectionMutation.Field()
+    close_discussion = CloseDiscussionMutation.Field()
 
 
 schema = Schema(query=Query, mutation=Mutations, auto_camelcase=False)

@@ -53,6 +53,8 @@ class Discussion(db.Model):
     creator_id =    db.Column(db.Integer, db.ForeignKey('user.id'))
     creation_date = db.Column(db.DateTime, default=datetime.utcnow())
 
+    closed = db.Column(db.Boolean, nullable=False, server_default="0")
+
     sections = db.relationship('Section', backref='discussion', lazy='dynamic')
     members =  db.relationship('User', backref='discussions', secondary=discussion_members)
 
@@ -65,6 +67,14 @@ class Section(db.Model):
 
     votes =    db.relationship('Vote', backref='section', lazy='dynamic')
     messages = db.relationship('Message', backref='section', lazy='dynamic')
+
+    voted_for_percentage = db.Column(db.Integer)
+
+    def get_voted_for_percentage(self):
+        votes_for = self.votes.filter_by(voted_for=True).count()
+        votes_against = self.votes.filter_by(voted_for=False).count()
+        self.voted_for_percentage = round(votes_for * 100 / float(votes_for + votes_against))
+        db.session.commit()
 
 
 class Vote(db.Model):
