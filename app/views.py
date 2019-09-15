@@ -61,7 +61,7 @@ class Query(ObjectType):
     discussion = String(d_name = String(), d_description = String(), d_deadline = DateTime())
     take_disc_data = String(d_id = String())
     section = String(discussion_id1 = String(), description1=String())
-
+    message = String(content=String(), datetime=DateTime())
 
     def resolve_users(self, info):
         query = User.get_query(info)
@@ -119,6 +119,11 @@ class Query(ObjectType):
         db.session.commit()
         return '{"status": "ok"}'
 
+    def resolve_message(root, info, content, datetime):
+        new_message = models.Message(content=content, datetime=datetime)
+        db.session.add(new_message)
+        db.session.commit()
+        return '{"status": "ok"}'
 
 schema = Schema(query=Query, auto_camelcase=False)
 
