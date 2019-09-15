@@ -16,6 +16,11 @@ def before_request():
     g.user = current_user
 
 
+@lm.user_loader
+def load_user(id):
+    return models.User.query.filter_by(id=id).first()
+
+
 @lm.request_loader
 def load_user_from_request(request):
     print('hey')
