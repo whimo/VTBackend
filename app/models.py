@@ -63,7 +63,8 @@ class Section(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
     discussion_id = db.Column(db.Integer, db.ForeignKey('discussion.id'))
-    description = db.Column(db.Text)
+    title =         db.Column(db.Text)
+    description =   db.Column(db.Text)
 
     votes =    db.relationship('Vote', backref='section', lazy='dynamic')
     messages = db.relationship('Message', backref='section', lazy='dynamic')
