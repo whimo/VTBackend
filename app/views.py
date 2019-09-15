@@ -8,7 +8,6 @@ from graphene_sqlalchemy import SQLAlchemyObjectType, SQLAlchemyConnectionField
 from flask_graphql import GraphQLView
 
 
-
 @app.before_request
 def before_request():
     '''
@@ -53,7 +52,7 @@ class Message(SQLAlchemyObjectType):
 class Query(ObjectType):
     users =       graphene.List(User)
     discussions = graphene.List(Discussion, id=graphene.Argument(type=graphene.Int, required=False))
-    sections =    graphene.List(Section)
+    sections =    graphene.List(Section, id=graphene.Argument(type=graphene.Int, required=False))
     votes =       graphene.List(Vote)
     messages =    graphene.List(Message)
 
@@ -67,8 +66,10 @@ class Query(ObjectType):
             query = query.filter(models.Discussion.id == id)
         return query.all()
 
-    def resolve_sections(self, info):
+    def resolve_sections(self, info, id=None):
         query = Section.get_query(info)
+        if id:
+            query = query.filter(models.Section.id == id)
         return query.all()
 
     def resolve_votes(self, info):
@@ -78,7 +79,6 @@ class Query(ObjectType):
     def resolve_messages(self, info):
         query = Message.get_query(info)
         return query.all()
-
 
 
 class NewUserMutation(Mutation):
@@ -99,11 +99,12 @@ class NewUserMutation(Mutation):
         db.session.commit()
         return NewUserMutation(user=new_user)
 
+
 class NewDiscussionMutation(Mutation):
     class Arguments:
-        name =     graphene.String(required=True)
+        name =         graphene.String(required=True)
         description =  graphene.String(required=True)
-        deadline = graphene.DateTime()
+        deadline =     graphene.DateTime()
 
     discussion = graphene.Field(Discussion)
 
@@ -113,11 +114,12 @@ class NewDiscussionMutation(Mutation):
         db.session.commit()
         return NewDiscussionMutation(discussion=new_discussion)
 
+
 class NewVoteMutation(Mutation):
     class Arguments:
         user_id =     graphene.String(required=True)
         section_id =  graphene.String(required=True)
-        
+
     vote = graphene.Field(Vote)
 
     def mutate(root, info, user_id, section_id):
@@ -127,11 +129,12 @@ class NewVoteMutation(Mutation):
         db.session.commit()
         return NewVoteMutation(vote=new_vote)
 
+
 class NewSectionMutation(Mutation):
     class Arguments:
-        discussion_id =     graphene.String(required=True)
-        description =  graphene.String(required=True)
-        
+        discussion_id = graphene.String(required=True)
+        description =   graphene.String(required=True)
+
     section = graphene.Field(Section)
 
     def mutate(root, info, discussion_id, description):
@@ -140,21 +143,22 @@ class NewSectionMutation(Mutation):
         db.session.commit()
         return NewSectionMutation(section=new_section)
 
+
 class NewLoginMutation(Mutation):
     class Arguments:
         email = graphene.String(required=True)
         password = graphene.String(required=True)
 
     user = graphene.Field(User)
-    
+
     def mutate(root, info, email, password):
         user_ = models.User.query.filter_by(email=email).first()
 
         if user_ and bcrypt.check_password_hash(user_.password, password):
             login_user(user_)
 
-        
         return NewLoginMutation(user=user_)
+
 
 class Mutations(ObjectType):
     register = NewUserMutation.Field()
