@@ -183,6 +183,22 @@ class NewMessageMutation(Mutation):
         return NewMessageMutation(message=new_message)
 
 
+class EditSectionMutation(Mutation):
+    class Arguments:
+        section_id =    graphene.String(required=True)
+        description =   graphene.String(required=False)
+
+    section = graphene.Field(Section)
+
+    def mutate(root, info, section_id, description=None):
+        section_ = models.Section.query.get(section_id)
+        if section_:
+            section_.description = description or section_.description
+            db.session.commit()
+
+        return EditSectionMutation(section=section_)
+
+
 class Mutations(ObjectType):
     register = NewUserMutation.Field()
     discussion = NewDiscussionMutation.Field()
@@ -190,6 +206,7 @@ class Mutations(ObjectType):
     vote = NewVoteMutation.Field()
     login = NewLoginMutation.Field()
     message = NewMessageMutation.Field()
+    section_edit = EditSectionMutation.Field()
 
 
 schema = Schema(query=Query, mutation=Mutations, auto_camelcase=False)
