@@ -60,6 +60,8 @@ class Query(ObjectType):
     sections =    graphene.List(Section, id=graphene.Argument(type=graphene.Int, required=False))
     votes =       graphene.List(Vote)
     messages =    graphene.List(Message)
+
+    user_discussions = graphene.List(Discussion, id=graphene.Argument(type=graphene.Int))
     discussion = String(d_name = String(), d_description = String(), d_deadline = DateTime())
 
     def resolve_users(self, info):
@@ -93,6 +95,11 @@ class Query(ObjectType):
         db.session.commit()
         return '{"status": "ok"}'
 
+    def resolve_user_discussions(root, info, id):
+        query = Discussion.get_query(info)
+        query = query.filter(models.Discussion.members.any(models.User.id == id))
+        return query.all()
+
 
 class NewUserMutation(Mutation):
     class Arguments:
@@ -115,16 +122,25 @@ class NewUserMutation(Mutation):
 
 class NewDiscussionMutation(Mutation):
     class Arguments:
+        creator_id =   graphene.String(required=True)
         name =         graphene.String(required=True)
         description =  graphene.String(required=True)
         deadline =     graphene.DateTime()
 
     discussion = graphene.Field(Discussion)
 
-    def mutate(root, info, name, description, deadline):
-        new_discussion = models.Discussion(name=name, description=description, deadline=deadline)
-        db.session.add(new_discussion)
-        db.session.commit()
+    def mutate(root, info, name, description, deadline, creator_id):
+        creator = models.User.query.get(creator_id)
+        if creator:
+            new_discussion = models.Discussion(name=name, description=description,
+                                               deadline=deadline, creator_id=creator_id)
+            db.session.add(new_discussion)
+            db.session.commit()
+            new_discussion.members.append(creator)
+            db.session.commit()
+        else:
+            new_discussion = None
+
         return NewDiscussionMutation(discussion=new_discussion)
 
 
