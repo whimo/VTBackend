@@ -167,12 +167,29 @@ class NewLoginMutation(Mutation):
         return NewLoginMutation(user=user_)
 
 
+class NewMessageMutation(Mutation):
+    class Arguments:
+        content =    graphene.String(required=True)
+        user_id =    graphene.String(required=True)
+        section_id = graphene.String(required=True)
+
+    message = graphene.Field(Message)
+
+    def mutate(root, info, content, user_id, section_id):
+        new_message = models.Message(content=content, user_id=user_id, section_id=section_id)
+        db.session.add(new_message)
+        db.session.commit()
+
+        return NewMessageMutation(message=new_message)
+
+
 class Mutations(ObjectType):
     register = NewUserMutation.Field()
     discussion = NewDiscussionMutation.Field()
     section = NewSectionMutation.Field()
     vote = NewVoteMutation.Field()
     login = NewLoginMutation.Field()
+    message = NewMessageMutation.Field()
 
 
 schema = Schema(query=Query, mutation=Mutations, auto_camelcase=False)

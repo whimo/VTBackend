@@ -79,7 +79,7 @@ class Message(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
     content =  db.Column(db.Text, nullable=False)
-    datetime = db.Column(db.DateTime, nullable=False)
+    datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow())
 
     user_id =    db.Column(db.Integer, db.ForeignKey('user.id'))
     section_id = db.Column(db.Integer, db.ForeignKey('section.id'))
