@@ -249,6 +249,26 @@ class CloseDiscussionMutation(Mutation):
         return CloseDiscussionMutation(discussion=discussion_)
 
 
+class InviteMutation(Mutation):
+    class Arguments:
+        discussion_id = graphene.String(required=True)
+        email =         graphene.String(required=True)
+
+    discussion = graphene.Field(Discussion)
+
+    def mutate(root, info, discussion_id, email):
+        discussion_ = models.Discussion.query.get(discussion_id)
+        user_ = models.User.query.filter_by(email=email).first()
+
+        if discussion_ and user_:
+            discussion_.members.append(user_)
+            db.session.commit()
+        else:
+            discussion_ = None
+
+        return InviteMutation(discussion=discussion_)
+
+
 class Mutations(ObjectType):
     register = NewUserMutation.Field()
     discussion = NewDiscussionMutation.Field()
