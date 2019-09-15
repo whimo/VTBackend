@@ -21,8 +21,9 @@ class User(db.Model):
 
     vote_weight = db.Column(db.SmallInteger, default=1)
 
-    votes =    db.relationship('Vote', backref='user', lazy='dynamic')
-    messages = db.relationship('Message', backref='user', lazy='dynamic')
+    votes =       db.relationship('Vote', backref='user', lazy='dynamic')
+    messages =    db.relationship('Message', backref='user', lazy='dynamic')
+    discussions = db.relationship('Discussion', backref='creator', lazy='dynamic')
 
     @property
     def is_authenticated(self):
@@ -50,7 +51,7 @@ class Discussion(db.Model):
     description = db.Column(db.Text)
     deadline =    db.Column(db.DateTime)
 
-    creator =       db.Column(db.Integer, db.ForeignKey('user.id'))
+    creator_id =    db.Column(db.Integer, db.ForeignKey('user.id'))
     creation_date = db.Column(db.DateTime, default=datetime.utcnow())
 
     sections = db.relationship('Section', backref='discussion', lazy='dynamic')
