@@ -23,7 +23,6 @@ class User(db.Model):
 
     votes =       db.relationship('Vote', backref='user', lazy='dynamic')
     messages =    db.relationship('Message', backref='user', lazy='dynamic')
-    discussions = db.relationship('Discussion', backref='creator', lazy='dynamic')
 
     @property
     def is_authenticated(self):
