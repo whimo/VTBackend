@@ -2,7 +2,7 @@ from app import app, models, db, lm, bcrypt
 from flask import g
 from datetime import datetime
 from flask_login import current_user
-from graphene import ObjectType, String, Schema, DateTime
+from graphene import ObjectType, Mutation, String, Schema, DateTime
 import graphene
 from graphene_sqlalchemy import SQLAlchemyObjectType, SQLAlchemyConnectionField
 from flask_graphql import GraphQLView
@@ -127,6 +127,30 @@ class Query(ObjectType):
         db.session.add(new_message)
         db.session.commit()
         return '{"status": "ok"}'
+
+
+class NewUserMutation(Mutation):
+    class Arguments:
+        email =     graphene.String(required=True)
+        password =  graphene.String(required=True)
+        name =      graphene.String()
+        last_name = graphene.String()
+
+    user = graphene.Field(User)
+
+    def mutate(root, info, email, password, name, last_name):
+        new_user = models.User(email=email,
+                               password=bcrypt.generate_password_hash(password).decode('utf-8'),
+                               name=name,
+                               last_name=last_name)
+        db.session.add(new_user)
+        db.session.commit()
+        return NewUserMutation(user=new_user)
+
+
+class Mutations(ObjectType):
+    register = NewUserMutation.Field()
+
 
 schema = Schema(query=Query, auto_camelcase=False)
 
