@@ -283,6 +283,7 @@ class Mutations(ObjectType):
     message = NewMessageMutation.Field()
     section_edit = EditSectionMutation.Field()
     close_discussion = CloseDiscussionMutation.Field()
+    invite = InviteMutation.Field()
 
 
 schema = Schema(query=Query, mutation=Mutations, auto_camelcase=False)
