@@ -1,11 +1,12 @@
 from app import app, models, db, lm, bcrypt
 from flask import g
 from datetime import datetime
-from flask_login import current_user
+from flask_login import login_user, current_user
 from graphene import ObjectType, Mutation, String, Schema, DateTime
 import graphene
 from graphene_sqlalchemy import SQLAlchemyObjectType, SQLAlchemyConnectionField
 from flask_graphql import GraphQLView
+
 
 
 @app.before_request
@@ -56,14 +57,6 @@ class Query(ObjectType):
     votes =       graphene.List(Vote)
     messages =    graphene.List(Message)
 
-    vote = String(user_id=String(), section_id=String())
-    register = String(user_email=String(),user_password=String(),user_name=String(),user_lastname=String())
-    login = String(user_email=String(), user_password=String())
-    discussion = String(d_name = String(), d_description = String(), d_deadline = DateTime())
-    take_disc_data = String(d_id = String())
-    section = String(discussion_id1 = String(), description1=String())
-    message = String(content=String(), datetime=DateTime())
-
     def resolve_users(self, info):
         query = User.get_query(info)
         return query.all()
@@ -86,47 +79,6 @@ class Query(ObjectType):
         query = Message.get_query(info)
         return query.all()
 
-    def resolve_vote(root, info, user_id, section_id):
-        if str(g.user.id) == str(user_id):
-            new_vote = models.Vote(user_id=user_id, section_id=section_id)
-            db.session.add(new_vote)
-            db.session.commit()
-            return '{"status": "ok"}'
-        else:
-            return '{"status":"wrong"}'
-
-    def resolve_register(root, info, user_email, user_password, user_name, user_lastname):
-        new_password_hash = bcrypt.generate_password_hash(user_password)
-        new_person = models.User(last_name=user_lastname, email=user_email, password=new_password_hash.decode('utf-8'), name=user_name)
-        db.session.add(new_person)
-        db.session.commit()
-        return '{"status": "ok"}'
-    
-    def resolve_login(root, info, user_email, user_password):
-        user = models.User.query.filter_by(email=user_email).first()
-        if user and bcrypt.check_password_hash(user.password, user_password):
-            login_user(user)
-            return '{"status": "ok"}'
-        else:
-            return '{"status":"wrong"}'
-
-    def resolve_discussion(root, info, d_name, d_description, d_deadline):
-        new_discussion = models.Discussion(name=d_name, description=d_description, deadline = d_deadline, creation_date=datetime.utcnow())
-        db.session.add(new_discussion)
-        db.session.commit()
-        return '{"status": "ok"}'
-
-    def resolve_section(root, info, discussion_id1, description1):
-        new_section = models.Section(discussion_id=discussion_id1, description=description1)
-        db.session.add(new_section)
-        db.session.commit()
-        return '{"status": "ok"}'
-
-    def resolve_message(root, info, content, datetime):
-        new_message = models.Message(content=content, datetime=datetime)
-        db.session.add(new_message)
-        db.session.commit()
-        return '{"status": "ok"}'
 
 
 class NewUserMutation(Mutation):
@@ -138,7 +90,7 @@ class NewUserMutation(Mutation):
 
     user = graphene.Field(User)
 
-    def mutate(root, info, email, password, name, last_name):
+    def mutate(root, info, email, password, name=None, last_name=None):
         new_user = models.User(email=email,
                                password=bcrypt.generate_password_hash(password).decode('utf-8'),
                                name=name,
@@ -147,9 +99,69 @@ class NewUserMutation(Mutation):
         db.session.commit()
         return NewUserMutation(user=new_user)
 
+class NewDiscussionMutation(Mutation):
+    class Arguments:
+        name =     graphene.String(required=True)
+        description =  graphene.String(required=True)
+        deadline = graphene.DateTime()
+
+    discussion = graphene.Field(Discussion)
+
+    def mutate(root, info, name, description, deadline):
+        new_discussion = models.Discussion(name=name, description=description, deadline=deadline)
+        db.session.add(new_discussion)
+        db.session.commit()
+        return NewDiscussionMutation(discussion=new_discussion)
+
+class NewVoteMutation(Mutation):
+    class Arguments:
+        user_id =     graphene.String(required=True)
+        section_id =  graphene.String(required=True)
+        
+    vote = graphene.Field(Vote)
+
+    def mutate(root, info, user_id, section_id):
+        print(g.user.id)
+        new_vote = models.Vote(user_id=user_id, section_id=section_id)
+        db.session.add(new_vote)
+        db.session.commit()
+        return NewVoteMutation(vote=new_vote)
+
+class NewSectionMutation(Mutation):
+    class Arguments:
+        discussion_id =     graphene.String(required=True)
+        description =  graphene.String(required=True)
+        
+    section = graphene.Field(Section)
+
+    def mutate(root, info, discussion_id, description):
+        new_section = models.Section(discussion_id=discussion_id, description=description)
+        db.session.add(new_section)
+        db.session.commit()
+        return NewSectionMutation(section=new_section)
+
+class NewLoginMutation(Mutation):
+    class Arguments:
+        email = graphene.String(required=True)
+        password = graphene.String(required=True)
+
+    user = graphene.Field(User)
+    
+    def mutate(root, info, email, password):
+        user_ = models.User.query.filter_by(email=email).first()
+
+        if user_ and bcrypt.check_password_hash(user_.password, password):
+            login_user(user_)
+
+        
+        return NewLoginMutation(user=user_)
 
 class Mutations(ObjectType):
     register = NewUserMutation.Field()
+    discussion = NewDiscussionMutation.Field()
+    section = NewSectionMutation.Field()
+    vote = NewVoteMutation.Field()
+    login = NewLoginMutation.Field()
 
 
 schema = Schema(query=Query, mutation=Mutations, auto_camelcase=False)
