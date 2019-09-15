@@ -51,7 +51,7 @@ class Message(SQLAlchemyObjectType):
 
 class Query(ObjectType):
     users =       graphene.List(User)
-    discussions = graphene.List(Discussion)
+    discussions = graphene.List(Discussion, id=graphene.Argument(type=graphene.Int, required=False))
     sections =    graphene.List(Section)
     votes =       graphene.List(Vote)
     messages =    graphene.List(Message)
@@ -68,8 +68,10 @@ class Query(ObjectType):
         query = User.get_query(info)
         return query.all()
 
-    def resolve_discussions(self, info):
+    def resolve_discussions(self, info, id=None):
         query = Discussion.get_query(info)
+        if id:
+            query = query.filter(models.Discussion.id == id)
         return query.all()
 
     def resolve_sections(self, info):
@@ -83,7 +85,7 @@ class Query(ObjectType):
     def resolve_messages(self, info):
         query = Message.get_query(info)
         return query.all()
-    
+
     def resolve_vote(root, info, user_id, section_id):
         if str(g.user.id) == str(user_id):
             new_vote = models.Vote(user_id=user_id, section_id=section_id)
