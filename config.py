@@ -11,3 +11,4 @@ if environ.get('LASALCA_SASALCA'):
     SQLALCHEMY_DATABASE_URI = 'sqlite://'
 
 APPLICATION_MOUNT = '/api'
+SECRET_KEY = '+xAF9jPl84pSVX0dUis1lwmVQyqtymUvdiIh2W7Vhss='
