@@ -75,6 +75,7 @@ class Query(ObjectType):
         query = Section.get_query(info)
         if id:
             query = query.filter(models.Section.id == id)
+
         return query.all()
 
     def resolve_votes(self, info):
@@ -134,6 +135,7 @@ class NewVoteMutation(Mutation):
             new_vote = models.Vote(user_id=user_id, section_id=section_id, voted_for=voted_for)
             db.session.add(new_vote)
             db.session.commit()
+            section.get_voted_for_percentage()
         else:
             new_vote = None
 
