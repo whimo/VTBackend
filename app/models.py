@@ -73,7 +73,8 @@ class Section(db.Model):
     def get_voted_for_percentage(self):
         votes_for = self.votes.filter_by(voted_for=True).count()
         votes_against = self.votes.filter_by(voted_for=False).count()
-        return round(votes_for * 100 / float(votes_for + votes_against))
+        self.voted_for_percentage = round(votes_for * 100 / float(votes_for + votes_against))
+        db.session.commit()
 
 
 class Vote(db.Model):
