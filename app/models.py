@@ -53,6 +53,8 @@ class Discussion(db.Model):
     creator_id =    db.Column(db.Integer, db.ForeignKey('user.id'))
     creation_date = db.Column(db.DateTime, default=datetime.utcnow())
 
+    closed = db.Column(db.Boolean, nullable=False, server_default="0")
+
     sections = db.relationship('Section', backref='discussion', lazy='dynamic')
     members =  db.relationship('User', backref='discussions', secondary=discussion_members)
 
